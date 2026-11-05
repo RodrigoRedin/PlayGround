@@ -483,7 +483,7 @@
     writeSave();
     const leader = leaderOf('goku');
     openModal({
-      title: 'How to <span>Play</span>',
+      titleHtml: 'How to <span>Play</span>',
       kicker: 'Fusion World in 60 seconds',
       size: 'lg',
       body: '<div class="howto">' +

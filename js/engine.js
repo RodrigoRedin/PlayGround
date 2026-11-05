@@ -121,7 +121,7 @@
     const s = getSide(state, side);
     if (s.hand.length >= MAX_HAND) {
       s.drop.push(card);
-      log(state, sideLabel(side) + ' discards ' + (reveal ? card.name : 'a card') + ' (hand full).', 'muted');
+      log(state, (side === 'player' ? 'You discard ' : 'Opponent discards ') + (reveal ? card.name : 'a card') + ' (hand full).', 'muted');
       return false;
     }
     s.hand.push(card);
@@ -141,7 +141,7 @@
       const card = s.deck.pop();
       const added = addToHand(state, side, card, side === 'player');
       events.push({ type: 'draw', side: side, card: card, added: added });
-      log(state, sideLabel(side) + ' draws ' + (side === 'player' ? card.name : 'a card') + '.', 'draw');
+      log(state, (side === 'player' ? 'You draw ' : 'Opponent draws ') + (side === 'player' ? card.name : 'a card') + '.', 'draw');
       if (!added) {
         events.push({ type: 'discard', side: side, card: card });
       }
@@ -158,7 +158,7 @@
     }
     const card = s.deck.pop();
     s.life.push(card);
-    log(state, sideLabel(side) + ' adds a Life card.', 'life');
+    log(state, (side === 'player' ? 'You add a Life card.' : 'Opponent adds a Life card.'), 'life');
     return [{ type: 'lifeadd', side: side, card: card, life: s.life.length, source: source || 'effect' }];
   }
 
@@ -226,7 +226,7 @@
       events.push({ type: 'draw', side: side, card: card, added: true });
     }
     s.mulliganUsed = true;
-    log(state, sideLabel(side) + (returning.length ? ' mulligans ' + returning.length + ' card' + (returning.length === 1 ? '' : 's') + '.' : ' keeps the opening hand.'), 'info');
+    log(state, (side === 'player' ? 'You' : 'Opponent') + (returning.length ? ' mulligan' + (side === 'player' ? '' : 's') + ' ' + returning.length + ' card' + (returning.length === 1 ? '' : 's') + '.' : ' keep' + (side === 'player' ? '' : 's') + ' the opening hand.'), 'info');
     return { ok: true, events: events, count: returning.length };
   }
 
@@ -263,7 +263,7 @@
     s.energy.max += 1;
     s.energy.active = s.energy.max;
     state.phase = 'main';
-    log(state, sideLabel(side) + ' charges ' + (side === 'player' ? card.name : 'a card') + '. Energy: ' + s.energy.max + '.', 'energy');
+    log(state, (side === 'player' ? 'You charge ' : 'Opponent charges ') + (side === 'player' ? card.name : 'a card') + '. Energy: ' + s.energy.max + '.', 'energy');
     return { ok: true, events: [{ type: 'charge', side: side, card: card, energy: s.energy.max }] };
   }
 
@@ -271,7 +271,7 @@
     if (state.over) return { ok: false, error: 'Battle is over.' };
     if (state.active !== side || state.phase !== 'charge') return { ok: false, error: 'Not in charge phase.' };
     state.phase = 'main';
-    log(state, sideLabel(side) + ' skips charging.', 'muted');
+    log(state, (side === 'player' ? 'You skip charging.' : 'Opponent skips charging.'), 'muted');
     return { ok: true, events: [{ type: 'phase', phase: 'main', side: side }] };
   }
 
@@ -311,7 +311,7 @@
       if (effect.buffAll && effect.ifLifeAtMost == null) {
         s.battle.forEach(function (c) { c.powerBonus += effect.buffAll; });
         events.push({ type: 'buff', side: side, amount: effect.buffAll, scope: 'all' });
-        log(state, sideLabel(side) + "'s Battle Cards gain +" + fmt(effect.buffAll) + ' power.', 'buff');
+        log(state, (side === 'player' ? 'Your Battle Cards gain +' : "Opponent's Battle Cards gain +") + fmt(effect.buffAll) + ' power.', 'buff');
       }
       if (effect.addLife) {
         events.push.apply(events, addLifeFromDeck(state, side, 'onplay'));
@@ -343,7 +343,7 @@
     s.battle.push(card);
     s.stats.cardsPlayed += 1;
     const events = [{ type: 'play', side: side, card: card, cost: card.cost }];
-    log(state, sideLabel(side) + ' plays ' + card.name + ' (cost ' + card.cost + ').', 'play');
+    log(state, (side === 'player' ? 'You play ' : 'Opponent plays ') + card.name + ' (cost ' + card.cost + ').', 'play');
     resolveOnPlay(state, side, card, events);
     return { ok: true, events: events };
   }
@@ -466,7 +466,7 @@
     const bonus = cards.reduce(function (sum, c) { return sum + c.combo; }, 0);
     if (cards.length) {
       s.stats.combos += cards.length;
-      log(state, sideLabel(side) + ' uses ' + cards.length + ' Combo Card' + (cards.length === 1 ? '' : 's') + ' (+' + fmt(bonus) + ').', 'combo');
+      log(state, (side === 'player' ? 'You use ' : 'Opponent uses ') + cards.length + ' Combo Card' + (cards.length === 1 ? '' : 's') + ' (+' + fmt(bonus) + ').', 'combo');
     }
     return { bonus: bonus, cards: cards };
   }
@@ -487,7 +487,7 @@
       s.stats.lifeLost += 1;
       s.stats.damageTaken += 1;
       if (sourceSide) getSide(state, sourceSide).stats.damageDealt += 1;
-      log(state, sideLabel(defenderSide) + ' loses 1 Life (' + s.life.length + ' remaining).', 'damage');
+      log(state, (defenderSide === 'player' ? 'You lose ' : 'Opponent loses ') + '1 Life (' + s.life.length + ' remaining).', 'damage');
       events.push({ type: 'life', side: defenderSide, card: card, life: s.life.length, added: added });
       if (!s.life.length) {
         endGame(state, otherSide(defenderSide), 'life');
@@ -516,7 +516,7 @@
     }
     if (ability.buffAll) {
       s.battle.forEach(function (c) { c.powerBonus += ability.buffAll; });
-      log(state, sideLabel(side) + "'s Battle Cards gain +" + fmt(ability.buffAll) + ' power.', 'buff');
+      log(state, (side === 'player' ? 'Your Battle Cards gain +' : "Opponent's Battle Cards gain +") + fmt(ability.buffAll) + ' power.', 'buff');
       events.push({ type: 'buff', side: side, amount: ability.buffAll, scope: 'all' });
     }
     if (ability.addLife) {

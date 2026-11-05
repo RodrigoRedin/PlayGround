@@ -95,7 +95,7 @@
     if (fn) { try { fn(); } catch (e) { /* audio is decorative */ } }
   }
 
-  function setEnabled(value) { enabled = !!value; if (enabled) ensure(); }
+  function setEnabled(value) { enabled = !!value; }
   function isEnabled() { return enabled; }
   function resume() { if (ctx && ctx.state === 'suspended') ctx.resume(); }
 
